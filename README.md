@@ -1,5 +1,85 @@
 ## Apache RocketMQ
 
+2. RocketMQ 的整体架构
+理解 RocketMQ 的架构是阅读源码的前提：
+● Producer：消息生产者。
+● Consumer：消息消费者。
+● Broker：存储消息并负责消费者与生产者之间的通信。
+● NameServer：提供服务发现和路由。
+组件间的通信基于 Netty，主要使用了自定义的 Remoting 协议。
+
+3. 源码结构概览
+RocketMQ 的核心模块及功能：
+● common：通用工具类，比如序列化、配置、日志等。
+● remoting：基于 Netty 的通信模块。
+● store：消息存储模块，主要涉及 CommitLog 和 ConsumeQueue。
+● broker：消息中间人，负责存储消息和与生产者、消费者交互。
+● client：生产者和消费者的客户端实现。
+● namesrv：NameServer 的实现，管理 Broker 路由信息。
+
+4. 建议的学习路径
+以下是逐步深入的源码学习路径：
+Step 1：NameServer 模块
+NameServer 是整个 RocketMQ 的基础，负责路由注册与查询。
+● 核心类：
+  ○ NamesrvStartup：启动类。
+  ○ RouteInfoManager：管理路由表。
+  ○ RemotingServer：与 Broker 通信。
+● 学习重点：
+  a. NameServer 的启动过程。
+  b. Broker 的注册机制。
+Step 2：Broker 模块
+Broker 是消息存储与转发的核心。
+● 核心类：
+  ○ BrokerStartup：启动类。
+  ○ MessageStore：消息存储的入口。
+  ○ CommitLog：消息的物理存储。
+  ○ ConsumeQueue：消息的逻辑索引。
+● 学习重点：
+  a. 消息的存储机制。
+  b. 消息的读取流程。
+  c. 消息分发的高可用设计。
+Step 3：Client 模块
+Client 包含 Producer 和 Consumer。
+● 核心类：
+  ○ DefaultMQProducer：Producer 的实现。
+  ○ DefaultMQPushConsumer：Consumer 的实现。
+  ○ RebalanceImpl：负载均衡的实现。
+● 学习重点：
+  a. 消息的发送逻辑。
+  b. 消费端的负载均衡策略。
+Step 4：Store 模块
+消息存储是 RocketMQ 的性能瓶颈，重点学习其存储机制。
+● 核心类：
+  ○ MappedFile：实现文件的映射。
+  ○ DefaultMessageStore：提供存储接口。
+  ○ FlushRealTimeService：刷盘服务。
+● 学习重点：
+  a. Zero-copy 文件映射机制。
+  b. CommitLog 和 ConsumeQueue 的交互。
+  c. 主从同步机制。
+Step 5：Remoting 模块
+负责 Broker、NameServer 和 Client 的通信。
+● 核心类：
+  ○ NettyRemotingServer：基于 Netty 的服务端实现。
+  ○ NettyRemotingClient：基于 Netty 的客户端实现。
+  ○ RemotingCommand：通信协议。
+● 学习重点：
+  a. RPC 请求的发送与响应。
+  b. 心跳机制和连接管理。
+
+5. 调试方法
+● 单步调试： 在 IntelliJ IDEA 中使用断点调试 NameServer 和 Broker 的启动过程。
+● 日志分析： RocketMQ 使用 SLF4J 记录日志，阅读源码时结合日志更容易理解。
+● 测试代码： RocketMQ 提供了一些测试用例（位于 test 包中），可以用于验证功能。
+
+6. 深入研究
+● 性能优化：RocketMQ 的吞吐量优化策略（如刷盘机制、批量消息支持）。
+● 分布式事务：学习其事务消息的实现。
+● 高可用设计：主从架构和多副本同步机制。
+● 扩展性：如何自定义拦截器或插件。
+
+
 [![Build Status][maven-build-image]][maven-build-url]
 [![CodeCov][codecov-image]][codecov-url]
 [![Maven Central][maven-central-image]][maven-central-url]
