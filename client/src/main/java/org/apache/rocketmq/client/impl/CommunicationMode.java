@@ -16,8 +16,22 @@
  */
 package org.apache.rocketmq.client.impl;
 
+/**
+ * 通信模式枚举，定义了三种通信模式。
+ */
 public enum CommunicationMode {
+    /**
+     * 同步模式：发送方等待接收方确认后才继续执行。
+     */
     SYNC,
+
+    /**
+     * 异步模式：发送方发送消息后立即返回，不等待接收方确认。
+     */
     ASYNC,
+
+    /**
+     * 单向模式：发送方发送消息后不关心接收方是否收到，也不等待任何响应。
+     */
     ONEWAY,
 }

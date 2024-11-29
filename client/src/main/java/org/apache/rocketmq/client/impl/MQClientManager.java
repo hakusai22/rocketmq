@@ -30,10 +30,16 @@ public class MQClientManager {
     private final static Logger log = LoggerFactory.getLogger(MQClientManager.class);
     private static MQClientManager instance = new MQClientManager();
     private AtomicInteger factoryIndexGenerator = new AtomicInteger();
-    private ConcurrentMap<String/* clientId */, MQClientInstance> factoryTable =
+    /**
+     * key clientId
+     */
+    private ConcurrentMap<String, MQClientInstance> factoryTable =
         new ConcurrentHashMap<>();
-    private ConcurrentMap<String/* clientId */, ProduceAccumulator> accumulatorTable =
-        new ConcurrentHashMap<String, ProduceAccumulator>();
+    /**
+     * key clientId
+     */
+    private ConcurrentMap<String, ProduceAccumulator> accumulatorTable =
+        new ConcurrentHashMap<>();
 
 
     private MQClientManager() {

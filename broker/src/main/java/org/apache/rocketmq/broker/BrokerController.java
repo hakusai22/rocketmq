@@ -1749,16 +1749,16 @@ public class BrokerController {
             public void run0() {
                 try {
                     if (System.currentTimeMillis() < shouldStartTime) {
-                        BrokerController.LOG.info("Register to namesrv after {}", shouldStartTime);
+                        LOG.info("Register to namesrv after {}", shouldStartTime);
                         return;
                     }
                     if (isIsolated) {
-                        BrokerController.LOG.info("Skip register for broker is isolated");
+                        LOG.info("Skip register for broker is isolated");
                         return;
                     }
-                    BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister());
+                    registerBrokerAll(true, false, brokerConfig.isForceRegister());
                 } catch (Throwable e) {
-                    BrokerController.LOG.error("registerBrokerAll Exception", e);
+                    LOG.error("registerBrokerAll Exception", e);
                 }
             }
         }, 1000 * 10, Math.max(10000, Math.min(brokerConfig.getRegisterNameServerPeriod(), 60000)), TimeUnit.MILLISECONDS));
@@ -1772,7 +1772,7 @@ public class BrokerController {
                     try {
                         BrokerController.this.syncBrokerMemberGroup();
                     } catch (Throwable e) {
-                        BrokerController.LOG.error("sync BrokerMemberGroup error. ", e);
+                        LOG.error("sync BrokerMemberGroup error. ", e);
                     }
                 }
             }, 1000, this.brokerConfig.getSyncBrokerMemberGroupPeriod(), TimeUnit.MILLISECONDS));
@@ -1808,7 +1808,7 @@ public class BrokerController {
                 try {
                     BrokerController.this.sendHeartbeat();
                 } catch (Exception e) {
-                    BrokerController.LOG.error("sendHeartbeat Exception", e);
+                    LOG.error("sendHeartbeat Exception", e);
                 }
 
             }
@@ -1913,7 +1913,7 @@ public class BrokerController {
         TopicConfigSerializeWrapper topicConfigWrapper) {
 
         if (shutdown) {
-            BrokerController.LOG.info("BrokerController#doRegisterBrokerAll: broker has shutdown, no need to register any more.");
+            LOG.info("BrokerController#doRegisterBrokerAll: broker has shutdown, no need to register any more.");
             return;
         }
         List<RegisterBrokerResult> registerBrokerResultList = this.brokerOuterAPI.registerBrokerAll(
@@ -1966,11 +1966,11 @@ public class BrokerController {
             brokerMemberGroup = this.getBrokerOuterAPI()
                 .syncBrokerMemberGroup(this.brokerConfig.getBrokerClusterName(), this.brokerConfig.getBrokerName(), this.brokerConfig.isCompatibleWithOldNameSrv());
         } catch (Exception e) {
-            BrokerController.LOG.error("syncBrokerMemberGroup from namesrv failed, ", e);
+            LOG.error("syncBrokerMemberGroup from namesrv failed, ", e);
             return;
         }
         if (brokerMemberGroup == null || brokerMemberGroup.getBrokerAddrs().size() == 0) {
-            BrokerController.LOG.warn("Couldn't find any broker member from namesrv in {}/{}", this.brokerConfig.getBrokerClusterName(), this.brokerConfig.getBrokerName());
+            LOG.warn("Couldn't find any broker member from namesrv in {}/{}", this.brokerConfig.getBrokerClusterName(), this.brokerConfig.getBrokerName());
             return;
         }
         this.messageStore.setAliveReplicaNumInGroup(calcAliveBrokerNumInGroup(brokerMemberGroup.getBrokerAddrs()));
@@ -2027,7 +2027,7 @@ public class BrokerController {
     }
 
     public void startService(long minBrokerId, String minBrokerAddr) {
-        BrokerController.LOG.info("{} start service, min broker id is {}, min broker addr: {}",
+        LOG.info("{} start service, min broker id is {}, min broker addr: {}",
             this.brokerConfig.getCanonicalName(), minBrokerId, minBrokerAddr);
         this.minBrokerIdInGroup = minBrokerId;
         this.minBrokerAddrInGroup = minBrokerAddr;
@@ -2039,7 +2039,7 @@ public class BrokerController {
     }
 
     public void startServiceWithoutCondition() {
-        BrokerController.LOG.info("{} start service", this.brokerConfig.getCanonicalName());
+        LOG.info("{} start service", this.brokerConfig.getCanonicalName());
 
         this.changeSpecialServiceStatus(this.brokerConfig.getBrokerId() == MixAll.MASTER_ID);
         this.registerBrokerAll(true, false, brokerConfig.isForceRegister());
@@ -2048,7 +2048,7 @@ public class BrokerController {
     }
 
     public void stopService() {
-        BrokerController.LOG.info("{} stop service", this.getBrokerConfig().getCanonicalName());
+        LOG.info("{} stop service", this.getBrokerConfig().getCanonicalName());
         isIsolated = true;
         this.changeSpecialServiceStatus(false);
     }

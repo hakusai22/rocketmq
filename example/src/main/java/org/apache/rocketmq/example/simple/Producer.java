@@ -20,33 +20,51 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
+
 import java.nio.charset.StandardCharsets;
 
 public class Producer {
 
-    public static final String PRODUCER_GROUP = "ProducerGroupName";
-    public static final String DEFAULT_NAMESRVADDR = "127.0.0.1:9876";
-    public static final String TOPIC = "TopicTest";
-    public static final String TAG = "TagA";
+  public static final String PRODUCER_GROUP = "ProducerGroupName";
+  public static final String DEFAULT_NAMESRVADDR = "0.0.0.0:9876";
+  public static final String TOPIC = "TopicTest";
+  public static final String TAG = "TagA";
 
-    public static void main(String[] args) throws MQClientException, InterruptedException {
+  /**
+   * 主函数，负责初始化消息生产者并发送消息
+   *
+   * @param args 命令行参数
+   * @throws MQClientException    如果初始化或使用消息队列客户端时发生错误
+   * @throws InterruptedException 如果线程在睡眠期间被中断
+   */
+  public static void main(
+      String[] args) throws MQClientException, InterruptedException {
 
-        DefaultMQProducer producer = new DefaultMQProducer(PRODUCER_GROUP);
+    // 初始化消息生产者，指定生产者组
+    DefaultMQProducer producer = new DefaultMQProducer(PRODUCER_GROUP);
 
-        // Uncomment the following line while debugging, namesrvAddr should be set to your local address
-        //producer.setNamesrvAddr(DEFAULT_NAMESRVADDR);
+    // 调试时取消以下行的注释，namesrvAddr 应设置为本地地址
+    // producer.setNamesrvAddr(DEFAULT_NAMESRVADDR);
 
-        producer.start();
-        for (int i = 0; i < 128; i++) {
-            try {
-                Message msg = new Message(TOPIC, TAG, "OrderID188", "Hello world".getBytes(StandardCharsets.UTF_8));
-                SendResult sendResult = producer.send(msg);
-                System.out.printf("%s%n", sendResult);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        producer.shutdown();
+    // 启动消息生产者
+    producer.start();
+    // 循环发送 128 条消息
+    for (int i = 0; i < 128; i++) {
+      try {
+        // 创建消息，指定主题、标签、键和消息体
+        Message msg = new Message(TOPIC, TAG, "OrderID188", "Hello world".getBytes(StandardCharsets.UTF_8));
+        // 发送消息并接收发送结果
+        SendResult sendResult = producer.send(msg);
+        // 打印发送结果
+        System.out.printf("%s%n", sendResult);
+      } catch (Exception e) {
+        // 如果发生异常，打印异常堆栈跟踪
+        e.printStackTrace();
+      }
     }
+
+    // 消息发送完成后关闭消息生产者
+    producer.shutdown();
+  }
+
 }

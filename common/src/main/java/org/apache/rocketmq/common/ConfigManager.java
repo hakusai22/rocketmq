@@ -32,15 +32,15 @@ public abstract class ConfigManager {
             fileName = this.configFilePath();
             String jsonString = MixAll.file2String(fileName);
 
-            if (null == jsonString || jsonString.length() == 0) {
+            if (null == jsonString || jsonString.isEmpty()) {
                 return this.loadBak();
             } else {
                 this.decode(jsonString);
-                log.info("load " + fileName + " OK");
+                log.info("load {} OK", fileName);
                 return true;
             }
         } catch (Exception e) {
-            log.error("load " + fileName + " failed, and try to load backup file", e);
+            log.error("load {} failed, and try to load backup file", fileName, e);
             return this.loadBak();
         }
     }
@@ -50,7 +50,7 @@ public abstract class ConfigManager {
         try {
             fileName = this.configFilePath() + ".bak";
             String jsonString = MixAll.file2String(fileName);
-            if (jsonString != null && jsonString.length() > 0) {
+            if (jsonString != null && !jsonString.isEmpty()) {
                 this.decode(jsonString);
                 log.info("load " + fileName + " OK");
                 return true;

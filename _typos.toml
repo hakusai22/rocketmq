@@ -1,0 +1,17 @@
+# Typo check: https://github.com/crate-ci/typos
+
+[files]
+
+[default.extend-identifiers]
+# *sigh* this just isn't worth the cost of fixing
+Droped = "Droped"
+droped = "droped"
+Datas = "Datas"
+maped = "maped"
+earlist = "earlist"
+Swaped = "Swaped"
+brokerDatas = "brokerDatas"
+queueDatas = "queueDatas"
+getMessageMapedList = "getMessageMapedList"
+cleanSwapedMap = "cleanSwapedMap"
+unexpect = "unexpect"

@@ -336,8 +336,7 @@ public abstract class RebalanceImpl {
                 }
 
                 if (mqSet != null && cidAll != null) {
-                    List<MessageQueue> mqAll = new ArrayList<>();
-                    mqAll.addAll(mqSet);
+                  List<MessageQueue> mqAll = new ArrayList<>(mqSet);
 
                     Collections.sort(mqAll);
                     Collections.sort(cidAll);
