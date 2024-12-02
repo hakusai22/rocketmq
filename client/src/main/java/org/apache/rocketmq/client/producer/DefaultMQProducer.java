@@ -362,45 +362,79 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
   }
 
   /**
-   * Start this producer instance. </p>
+   * 启动此生产者实例。
    *
-   * <strong> Much internal initializing procedures are carried out to make this instance prepared, thus, it's a must
-   * to invoke this method before sending or querying messages. </strong> </p>
+   * <strong>许多内部初始化过程将被执行以使此实例准备好，因此，在发送或查询消息之前必须调用此方法。</strong>
    *
-   * @throws MQClientException if there is any unexpected error.
+   * @throws MQClientException 如果发生任何意外错误。
    */
   @Override
   public void start() throws MQClientException {
+    // 设置带有命名空间的生产者组
     this.setProducerGroup(withNamespace(this.producerGroup));
+
+    // 启动默认的生产者实现
     this.defaultMQProducerImpl.start();
+
+    // 如果生产者累加器不为空，则启动它
     if (this.produceAccumulator != null) {
       this.produceAccumulator.start();
     }
+
+    // 如果启用了跟踪功能
     if (enableTrace) {
       try {
-        AsyncTraceDispatcher dispatcher = new AsyncTraceDispatcher(producerGroup, TraceDispatcher.Type.PRODUCE, getTraceMsgBatchNum(), traceTopic, rpcHook);
+        // 创建异步跟踪调度器
+        AsyncTraceDispatcher dispatcher = new AsyncTraceDispatcher(
+            producerGroup,
+            TraceDispatcher.Type.PRODUCE,
+            getTraceMsgBatchNum(),
+            traceTopic,
+            rpcHook
+        );
+
+        // 设置主机生产者
         dispatcher.setHostProducer(this.defaultMQProducerImpl);
+
+        // 设置命名空间
         dispatcher.setNamespaceV2(this.namespaceV2);
-        traceDispatcher = dispatcher;
+
+        // 注册发送消息的跟踪钩子
         this.defaultMQProducerImpl.registerSendMessageHook(
-            new SendMessageTraceHookImpl(traceDispatcher));
+            new SendMessageTraceHookImpl(traceDispatcher)
+        );
+
+        // 注册事务结束的跟踪钩子
         this.defaultMQProducerImpl.registerEndTransactionHook(
-            new EndTransactionTraceHookImpl(traceDispatcher));
+            new EndTransactionTraceHookImpl(traceDispatcher)
+        );
+
+        // 将跟踪调度器赋值给成员变量
+        traceDispatcher = dispatcher;
       } catch (Throwable e) {
-        logger.error("system mqtrace hook init failed ,maybe can't send msg trace data");
+        // 记录系统消息跟踪钩子初始化失败的日志
+        logger.error("系统消息跟踪钩子初始化失败，可能无法发送消息跟踪数据");
       }
     }
+
+    // 如果跟踪调度器不为空
     if (null != traceDispatcher) {
+      // 如果跟踪调度器是异步跟踪调度器
       if (traceDispatcher instanceof AsyncTraceDispatcher) {
+        // 设置是否使用 TLS
         ((AsyncTraceDispatcher) traceDispatcher).getTraceProducer().setUseTLS(isUseTLS());
       }
+
       try {
+        // 启动跟踪调度器
         traceDispatcher.start(this.getNamesrvAddr(), this.getAccessChannel());
       } catch (MQClientException e) {
-        logger.warn("trace dispatcher start failed ", e);
+        // 记录跟踪调度器启动失败的日志
+        logger.warn("跟踪调度器启动失败", e);
       }
     }
   }
+
 
   /**
    * This method shuts down this producer instance and releases related resources.
@@ -763,20 +797,20 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     this.defaultMQProducerImpl.send(msg, selector, arg, sendCallback, timeout);
   }
 
-/**
- * 直接发送消息。根据传入的参数决定同步或异步发送。
- *
- * @param msg 要发送的消息。
- * @param mq 指定的消息队列，可以为 null。
- * @param sendCallback 异步发送的回调函数，可以为 null。
- * @return 如果是同步发送，返回 {@link SendResult} 实例，告知发送者消息的详细信息；如果是异步发送，返回 null。
- * @throws MQClientException    如果发生任何客户端错误。
- * @throws RemotingException    如果发生任何网络层错误。
- * @throws MQBrokerException    如果代理发生任何错误。
- * @throws InterruptedException 如果发送线程被中断。
- */
-public SendResult sendDirect(Message msg, MessageQueue mq,
-    SendCallback sendCallback) throws MQClientException, RemotingException, InterruptedException, MQBrokerException {
+  /**
+   * 直接发送消息。根据传入的参数决定同步或异步发送。
+   *
+   * @param msg          要发送的消息。
+   * @param mq           指定的消息队列，可以为 null。
+   * @param sendCallback 异步发送的回调函数，可以为 null。
+   * @return 如果是同步发送，返回 {@link SendResult} 实例，告知发送者消息的详细信息；如果是异步发送，返回 null。
+   * @throws MQClientException    如果发生任何客户端错误。
+   * @throws RemotingException    如果发生任何网络层错误。
+   * @throws MQBrokerException    如果代理发生任何错误。
+   * @throws InterruptedException 如果发送线程被中断。
+   */
+  public SendResult sendDirect(Message msg, MessageQueue mq,
+      SendCallback sendCallback) throws MQClientException, RemotingException, InterruptedException, MQBrokerException {
     // 同步模式发送
     if (sendCallback == null) {
       if (mq == null) {
@@ -797,7 +831,7 @@ public SendResult sendDirect(Message msg, MessageQueue mq,
       // 异步发送不返回结果
       return null;
     }
-}
+  }
 
 
   public SendResult sendByAccumulator(Message msg, MessageQueue mq,
