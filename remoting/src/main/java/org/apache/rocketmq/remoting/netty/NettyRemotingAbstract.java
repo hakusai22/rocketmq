@@ -534,11 +534,21 @@ public abstract class NettyRemotingAbstract {
   }
 
 
+  /**
+   * 调用实现方法。
+   *
+   * @param channel       通信通道，用于与远程节点进行数据交换
+   * @param request       请求命令，包含请求的具体内容和指令
+   * @param timeoutMillis 超时时间（毫秒），表示等待响应的最大时间
+   * @return 返回一个CompletableFuture对象，封装了异步调用的结果
+   */
   public CompletableFuture<ResponseFuture> invokeImpl(final Channel channel,
       final RemotingCommand request,
       final long timeoutMillis) {
+    // 调用内部实现方法invoke0，实际执行请求发送和响应接收的逻辑
     return invoke0(channel, request, timeoutMillis);
   }
+
 
   /**
    * 异步调用实现方法。
@@ -552,11 +562,18 @@ public abstract class NettyRemotingAbstract {
       final RemotingCommand request,
       final long timeoutMillis) {
 
+    // 创建一个CompletableFuture对象，用于封装异步调用的结果
     CompletableFuture<ResponseFuture> future = new CompletableFuture<>();
-    long beginStartTime = System.currentTimeMillis();
-    final int opaque = request.getOpaque();  // 获取请求的唯一标识符
 
+    // 记录开始时间，用于计算超时
+    long beginStartTime = System.currentTimeMillis();
+
+    // 获取请求的唯一标识符
+    final int opaque = request.getOpaque();
+
+    // 声明一个布尔变量，用于记录是否成功获取信号量
     boolean acquired;
+
     try {
       // 尝试在指定时间内获取信号量
       acquired = this.semaphoreAsync.tryAcquire(timeoutMillis, TimeUnit.MILLISECONDS);
@@ -568,40 +585,59 @@ public abstract class NettyRemotingAbstract {
 
     if (acquired) {
       // 如果成功获取信号量
-      final SemaphoreReleaseOnlyOnce once = new SemaphoreReleaseOnlyOnce(this.semaphoreAsync);  // 创建信号量释放对象
-      long costTime = System.currentTimeMillis() - beginStartTime;  // 计算获取信号量的时间
+      // 创建信号量释放对象，确保信号量只被释放一次
+      final SemaphoreReleaseOnlyOnce once = new SemaphoreReleaseOnlyOnce(this.semaphoreAsync);
 
+      // 计算获取信号量的时间
+      long costTime = System.currentTimeMillis() - beginStartTime;
+
+      // 检查获取信号量的时间是否超过了超时时间
       if (timeoutMillis < costTime) {
-        // 如果获取信号量的时间超过了超时时间，释放信号量并完成future
+        // 如果获取信号量的时间超过了超时时间
+        // 释放信号量
         once.release();
+        // 完成future并抛出超时异常
         future.completeExceptionally(new RemotingTimeoutException("invokeAsyncImpl call timeout"));
+        // 返回future对象
         return future;
       }
 
-      AtomicReference<ResponseFuture> responseFutureReference = new AtomicReference<>();  // 原子引用，用于存储响应未来对象
-      final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, request, timeoutMillis - costTime,
-          new InvokeCallback() {
+      // 创建一个原子引用，用于存储响应未来对象
+      AtomicReference<ResponseFuture> responseFutureReference = new AtomicReference<>();
+
+      // 创建一个响应未来对象，用于管理异步调用的结果
+      final ResponseFuture responseFuture = new ResponseFuture(
+          channel,  // 通信通道
+          opaque,  // 请求的唯一标识符
+          request,  // 请求命令
+          timeoutMillis - costTime,  // 剩余的超时时间
+          new InvokeCallback() {  // 回调接口，用于处理操作完成后的不同情况
             @Override
             public void operationComplete(ResponseFuture responseFuture) {
               // 操作完成时的回调方法
+              // 这里可以添加操作完成后的处理逻辑
             }
 
             @Override
             public void operationSucceed(RemotingCommand response) {
-              // 操作成功时的回调方法，完成future
+              // 操作成功时的回调方法
+              // 完成future并返回响应结果
               future.complete(responseFutureReference.get());
             }
 
             @Override
             public void operationFail(Throwable throwable) {
-              // 操作失败时的回调方法，完成future并抛出异常
+              // 操作失败时的回调方法
+              // 完成future并抛出异常
               future.completeExceptionally(throwable);
             }
-          }, once);
+          }, once);  // 信号量释放对象，确保信号量只被释放一次
 
-      responseFutureReference.set(responseFuture);  // 设置响应未来对象
-      this.responseTable.put(opaque, responseFuture);  // 将响应未来对象放入响应表中
+      // 设置响应未来对象到原子引用中
+      responseFutureReference.set(responseFuture);
 
+      // 将响应未来对象放入响应表中，以便后续处理响应
+      this.responseTable.put(opaque, responseFuture);
       try {
         // 发送请求并添加监听器
         channel.writeAndFlush(request).addListener((ChannelFutureListener) f -> {
@@ -626,6 +662,7 @@ public abstract class NettyRemotingAbstract {
         future.completeExceptionally(new RemotingSendRequestException(RemotingHelper.parseChannelRemoteAddr(channel), e));
         return future;
       }
+
     } else {
       // 如果未能获取信号量
       if (timeoutMillis <= 0) {
@@ -634,14 +671,14 @@ public abstract class NettyRemotingAbstract {
       } else {
         // 记录日志并完成future，抛出超时异常
         String info = String.format("invokeAsyncImpl tryAcquire semaphore timeout, %dms, waiting thread nums: %d semaphoreAsyncValue: %d",
-            timeoutMillis,
-            this.semaphoreAsync.getQueueLength(),
-            this.semaphoreAsync.availablePermits()
+            timeoutMillis,  // 超时时间
+            this.semaphoreAsync.getQueueLength(),  // 等待线程的数量
+            this.semaphoreAsync.availablePermits()  // 可用的信号量许可数量
         );
-        log.warn(info);
-        future.completeExceptionally(new RemotingTimeoutException(info));
+        log.warn(info);  // 记录警告日志
+        future.completeExceptionally(new RemotingTimeoutException(info));  // 完成future并抛出超时异常
       }
-      return future;
+      return future;  // 返回future对象
     }
   }
 

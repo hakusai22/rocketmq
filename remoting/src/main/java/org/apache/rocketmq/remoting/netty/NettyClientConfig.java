@@ -21,211 +21,282 @@ import org.apache.rocketmq.remoting.common.TlsMode;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_ENABLE;
 
 public class NettyClientConfig {
-    /**
-     * Worker thread number
-     */
-    private int clientWorkerThreads = NettySystemConfig.clientWorkerSize;
-    private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
-    private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
-    private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
-    private int connectTimeoutMillis = NettySystemConfig.connectTimeoutMillis;
-    private long channelNotActiveInterval = 1000 * 60;
+  /**
+   * 工作线程数量
+   */
+  private int clientWorkerThreads = NettySystemConfig.clientWorkerSize;
 
-    private boolean isScanAvailableNameSrv = true;
+  /**
+   * 回调执行线程数量
+   */
+  private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
 
-    /**
-     * IdleStateEvent will be triggered when neither read nor write was performed for
-     * the specified period of this time. Specify {@code 0} to disable
-     */
-    private int clientChannelMaxIdleTimeSeconds = NettySystemConfig.clientChannelMaxIdleTimeSeconds;
+  /**
+   * 单向信号量值
+   */
+  private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
 
-    private int clientSocketSndBufSize = NettySystemConfig.socketSndbufSize;
-    private int clientSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
-    private boolean clientPooledByteBufAllocatorEnable = false;
-    private boolean clientCloseSocketIfTimeout = NettySystemConfig.clientCloseSocketIfTimeout;
+  /**
+   * 异步��号量值
+   */
+  private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
 
-    private boolean useTLS = Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
-        String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING)));
+  /**
+   * 连接超时时间（毫秒）
+   */
+  private int connectTimeoutMillis = NettySystemConfig.connectTimeoutMillis;
 
-    private String socksProxyConfig = "{}";
+  /**
+   * 通道非活动间隔时间（毫秒）
+   */
+  private long channelNotActiveInterval = 1000 * 60;
 
-    private int writeBufferHighWaterMark = NettySystemConfig.writeBufferHighWaterMark;
-    private int writeBufferLowWaterMark = NettySystemConfig.writeBufferLowWaterMark;
+  /**
+   * 是否扫描可用的NameSrv
+   */
+  private boolean isScanAvailableNameSrv = true;
 
-    private boolean disableCallbackExecutor = false;
-    private boolean disableNettyWorkerGroup = false;
+  /**
+   * IdleStateEvent将在指定时间内既没有读也没有写操作时触发。指定{@code 0}以禁用
+   */
+  private int clientChannelMaxIdleTimeSeconds = NettySystemConfig.clientChannelMaxIdleTimeSeconds;
 
-    private long maxReconnectIntervalTimeSeconds = 60;
+  /**
+   * 客户端发送缓冲区大小
+   */
+  private int clientSocketSndBufSize = NettySystemConfig.socketSndbufSize;
 
-    private boolean enableReconnectForGoAway = true;
+  /**
+   * 客户端接收缓冲区大小
+   */
+  private int clientSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
 
-    private boolean enableTransparentRetry = true;
+  /**
+   * 是否启用客户端池化的ByteBuf分配器
+   */
+  private boolean clientPooledByteBufAllocatorEnable = false;
 
-    public boolean isClientCloseSocketIfTimeout() {
-        return clientCloseSocketIfTimeout;
-    }
+  /**
+   * 如果超时是否关闭客户端套接字
+   */
+  private boolean clientCloseSocketIfTimeout = NettySystemConfig.clientCloseSocketIfTimeout;
 
-    public void setClientCloseSocketIfTimeout(final boolean clientCloseSocketIfTimeout) {
-        this.clientCloseSocketIfTimeout = clientCloseSocketIfTimeout;
-    }
+  /**
+   * 是否使用TLS
+   */
+  private boolean useTLS = Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
+      String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING)));
 
-    public int getClientWorkerThreads() {
-        return clientWorkerThreads;
-    }
+  /**
+   * Socks代理配置
+   */
+  private String socksProxyConfig = "{}";
 
-    public void setClientWorkerThreads(int clientWorkerThreads) {
-        this.clientWorkerThreads = clientWorkerThreads;
-    }
+  /**
+   * 写缓冲区高水位标记
+   */
+  private int writeBufferHighWaterMark = NettySystemConfig.writeBufferHighWaterMark;
 
-    public int getClientOnewaySemaphoreValue() {
-        return clientOnewaySemaphoreValue;
-    }
+  /**
+   * 写缓冲区低水位标记
+   */
+  private int writeBufferLowWaterMark = NettySystemConfig.writeBufferLowWaterMark;
 
-    public void setClientOnewaySemaphoreValue(int clientOnewaySemaphoreValue) {
-        this.clientOnewaySemaphoreValue = clientOnewaySemaphoreValue;
-    }
+  /**
+   * 是否禁用回调执行器
+   */
+  private boolean disableCallbackExecutor = false;
 
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
+  /**
+   * 是否禁用Netty工作组
+   */
+  private boolean disableNettyWorkerGroup = false;
 
-    public void setConnectTimeoutMillis(int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
-    }
+  /**
+   * 最大重连间隔时间（秒）
+   */
+  private long maxReconnectIntervalTimeSeconds = 60;
 
-    public int getClientCallbackExecutorThreads() {
-        return clientCallbackExecutorThreads;
-    }
+  /**
+   * 是否启用GoAway的重连
+   */
+  private boolean enableReconnectForGoAway = true;
 
-    public void setClientCallbackExecutorThreads(int clientCallbackExecutorThreads) {
-        this.clientCallbackExecutorThreads = clientCallbackExecutorThreads;
-    }
+  /**
+   * 是否启用透明重试
+   */
+  private boolean enableTransparentRetry = true;
 
-    public long getChannelNotActiveInterval() {
-        return channelNotActiveInterval;
-    }
+  public boolean isClientCloseSocketIfTimeout() {
+    return clientCloseSocketIfTimeout;
+  }
 
-    public void setChannelNotActiveInterval(long channelNotActiveInterval) {
-        this.channelNotActiveInterval = channelNotActiveInterval;
-    }
+  public void setClientCloseSocketIfTimeout(
+      final boolean clientCloseSocketIfTimeout) {
+    this.clientCloseSocketIfTimeout = clientCloseSocketIfTimeout;
+  }
 
-    public int getClientAsyncSemaphoreValue() {
-        return clientAsyncSemaphoreValue;
-    }
+  public int getClientWorkerThreads() {
+    return clientWorkerThreads;
+  }
 
-    public void setClientAsyncSemaphoreValue(int clientAsyncSemaphoreValue) {
-        this.clientAsyncSemaphoreValue = clientAsyncSemaphoreValue;
-    }
+  public void setClientWorkerThreads(int clientWorkerThreads) {
+    this.clientWorkerThreads = clientWorkerThreads;
+  }
 
-    public int getClientChannelMaxIdleTimeSeconds() {
-        return clientChannelMaxIdleTimeSeconds;
-    }
+  public int getClientOnewaySemaphoreValue() {
+    return clientOnewaySemaphoreValue;
+  }
 
-    public void setClientChannelMaxIdleTimeSeconds(int clientChannelMaxIdleTimeSeconds) {
-        this.clientChannelMaxIdleTimeSeconds = clientChannelMaxIdleTimeSeconds;
-    }
+  public void setClientOnewaySemaphoreValue(int clientOnewaySemaphoreValue) {
+    this.clientOnewaySemaphoreValue = clientOnewaySemaphoreValue;
+  }
 
-    public int getClientSocketSndBufSize() {
-        return clientSocketSndBufSize;
-    }
+  public int getConnectTimeoutMillis() {
+    return connectTimeoutMillis;
+  }
 
-    public void setClientSocketSndBufSize(int clientSocketSndBufSize) {
-        this.clientSocketSndBufSize = clientSocketSndBufSize;
-    }
+  public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+    this.connectTimeoutMillis = connectTimeoutMillis;
+  }
 
-    public int getClientSocketRcvBufSize() {
-        return clientSocketRcvBufSize;
-    }
+  public int getClientCallbackExecutorThreads() {
+    return clientCallbackExecutorThreads;
+  }
 
-    public void setClientSocketRcvBufSize(int clientSocketRcvBufSize) {
-        this.clientSocketRcvBufSize = clientSocketRcvBufSize;
-    }
+  public void setClientCallbackExecutorThreads(
+      int clientCallbackExecutorThreads) {
+    this.clientCallbackExecutorThreads = clientCallbackExecutorThreads;
+  }
 
-    public boolean isClientPooledByteBufAllocatorEnable() {
-        return clientPooledByteBufAllocatorEnable;
-    }
+  public long getChannelNotActiveInterval() {
+    return channelNotActiveInterval;
+  }
 
-    public void setClientPooledByteBufAllocatorEnable(boolean clientPooledByteBufAllocatorEnable) {
-        this.clientPooledByteBufAllocatorEnable = clientPooledByteBufAllocatorEnable;
-    }
+  public void setChannelNotActiveInterval(long channelNotActiveInterval) {
+    this.channelNotActiveInterval = channelNotActiveInterval;
+  }
 
-    public boolean isUseTLS() {
-        return useTLS;
-    }
+  public int getClientAsyncSemaphoreValue() {
+    return clientAsyncSemaphoreValue;
+  }
 
-    public void setUseTLS(boolean useTLS) {
-        this.useTLS = useTLS;
-    }
+  public void setClientAsyncSemaphoreValue(int clientAsyncSemaphoreValue) {
+    this.clientAsyncSemaphoreValue = clientAsyncSemaphoreValue;
+  }
 
-    public int getWriteBufferLowWaterMark() {
-        return writeBufferLowWaterMark;
-    }
+  public int getClientChannelMaxIdleTimeSeconds() {
+    return clientChannelMaxIdleTimeSeconds;
+  }
 
-    public void setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
-        this.writeBufferLowWaterMark = writeBufferLowWaterMark;
-    }
+  public void setClientChannelMaxIdleTimeSeconds(
+      int clientChannelMaxIdleTimeSeconds) {
+    this.clientChannelMaxIdleTimeSeconds = clientChannelMaxIdleTimeSeconds;
+  }
 
-    public int getWriteBufferHighWaterMark() {
-        return writeBufferHighWaterMark;
-    }
+  public int getClientSocketSndBufSize() {
+    return clientSocketSndBufSize;
+  }
 
-    public void setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
-        this.writeBufferHighWaterMark = writeBufferHighWaterMark;
-    }
+  public void setClientSocketSndBufSize(int clientSocketSndBufSize) {
+    this.clientSocketSndBufSize = clientSocketSndBufSize;
+  }
 
-    public boolean isDisableCallbackExecutor() {
-        return disableCallbackExecutor;
-    }
+  public int getClientSocketRcvBufSize() {
+    return clientSocketRcvBufSize;
+  }
 
-    public void setDisableCallbackExecutor(boolean disableCallbackExecutor) {
-        this.disableCallbackExecutor = disableCallbackExecutor;
-    }
+  public void setClientSocketRcvBufSize(int clientSocketRcvBufSize) {
+    this.clientSocketRcvBufSize = clientSocketRcvBufSize;
+  }
 
-    public boolean isDisableNettyWorkerGroup() {
-        return disableNettyWorkerGroup;
-    }
+  public boolean isClientPooledByteBufAllocatorEnable() {
+    return clientPooledByteBufAllocatorEnable;
+  }
 
-    public void setDisableNettyWorkerGroup(boolean disableNettyWorkerGroup) {
-        this.disableNettyWorkerGroup = disableNettyWorkerGroup;
-    }
+  public void setClientPooledByteBufAllocatorEnable(
+      boolean clientPooledByteBufAllocatorEnable) {
+    this.clientPooledByteBufAllocatorEnable = clientPooledByteBufAllocatorEnable;
+  }
 
-    public long getMaxReconnectIntervalTimeSeconds() {
-        return maxReconnectIntervalTimeSeconds;
-    }
+  public boolean isUseTLS() {
+    return useTLS;
+  }
 
-    public void setMaxReconnectIntervalTimeSeconds(long maxReconnectIntervalTimeSeconds) {
-        this.maxReconnectIntervalTimeSeconds = maxReconnectIntervalTimeSeconds;
-    }
+  public void setUseTLS(boolean useTLS) {
+    this.useTLS = useTLS;
+  }
 
-    public boolean isEnableReconnectForGoAway() {
-        return enableReconnectForGoAway;
-    }
+  public int getWriteBufferLowWaterMark() {
+    return writeBufferLowWaterMark;
+  }
 
-    public void setEnableReconnectForGoAway(boolean enableReconnectForGoAway) {
-        this.enableReconnectForGoAway = enableReconnectForGoAway;
-    }
+  public void setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
+    this.writeBufferLowWaterMark = writeBufferLowWaterMark;
+  }
 
-    public boolean isEnableTransparentRetry() {
-        return enableTransparentRetry;
-    }
+  public int getWriteBufferHighWaterMark() {
+    return writeBufferHighWaterMark;
+  }
 
-    public void setEnableTransparentRetry(boolean enableTransparentRetry) {
-        this.enableTransparentRetry = enableTransparentRetry;
-    }
+  public void setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
+    this.writeBufferHighWaterMark = writeBufferHighWaterMark;
+  }
 
-    public String getSocksProxyConfig() {
-        return socksProxyConfig;
-    }
+  public boolean isDisableCallbackExecutor() {
+    return disableCallbackExecutor;
+  }
 
-    public void setSocksProxyConfig(String socksProxyConfig) {
-        this.socksProxyConfig = socksProxyConfig;
-    }
+  public void setDisableCallbackExecutor(boolean disableCallbackExecutor) {
+    this.disableCallbackExecutor = disableCallbackExecutor;
+  }
 
-    public boolean isScanAvailableNameSrv() {
-        return isScanAvailableNameSrv;
-    }
+  public boolean isDisableNettyWorkerGroup() {
+    return disableNettyWorkerGroup;
+  }
 
-    public void setScanAvailableNameSrv(boolean scanAvailableNameSrv) {
-        this.isScanAvailableNameSrv = scanAvailableNameSrv;
-    }
+  public void setDisableNettyWorkerGroup(boolean disableNettyWorkerGroup) {
+    this.disableNettyWorkerGroup = disableNettyWorkerGroup;
+  }
+
+  public long getMaxReconnectIntervalTimeSeconds() {
+    return maxReconnectIntervalTimeSeconds;
+  }
+
+  public void setMaxReconnectIntervalTimeSeconds(
+      long maxReconnectIntervalTimeSeconds) {
+    this.maxReconnectIntervalTimeSeconds = maxReconnectIntervalTimeSeconds;
+  }
+
+  public boolean isEnableReconnectForGoAway() {
+    return enableReconnectForGoAway;
+  }
+
+  public void setEnableReconnectForGoAway(boolean enableReconnectForGoAway) {
+    this.enableReconnectForGoAway = enableReconnectForGoAway;
+  }
+
+  public boolean isEnableTransparentRetry() {
+    return enableTransparentRetry;
+  }
+
+  public void setEnableTransparentRetry(boolean enableTransparentRetry) {
+    this.enableTransparentRetry = enableTransparentRetry;
+  }
+
+  public String getSocksProxyConfig() {
+    return socksProxyConfig;
+  }
+
+  public void setSocksProxyConfig(String socksProxyConfig) {
+    this.socksProxyConfig = socksProxyConfig;
+  }
+
+  public boolean isScanAvailableNameSrv() {
+    return isScanAvailableNameSrv;
+  }
+
+  public void setScanAvailableNameSrv(boolean scanAvailableNameSrv) {
+    this.isScanAvailableNameSrv = scanAvailableNameSrv;
+  }
 }

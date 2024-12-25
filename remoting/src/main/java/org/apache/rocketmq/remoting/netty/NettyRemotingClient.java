@@ -93,27 +93,45 @@ import org.apache.rocketmq.remoting.proxy.SocksProxyConfig;
 public class NettyRemotingClient extends NettyRemotingAbstract implements RemotingClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(LoggerName.ROCKETMQ_REMOTING_NAME);
 
+  // 获取锁的超时时间（毫秒）
   private static final long LOCK_TIMEOUT_MILLIS = 3000;
+  // 关闭连接的最小超时时间（毫秒）
   private static final long MIN_CLOSE_TIMEOUT_MILLIS = 100;
 
+  // Netty客户端配置
   private final NettyClientConfig nettyClientConfig;
+  // 用于初始化和配置Netty客户端的Bootstrap实例
   private final Bootstrap bootstrap = new Bootstrap();
+  // 处理I/O操作的事件循环组
   private final EventLoopGroup eventLoopGroupWorker;
+  // 同步访问通道表的锁
   private final Lock lockChannelTables = new ReentrantLock();
+  // 根据CIDR存储代理配置的映射
   private final Map<String /* cidr */, SocksProxyConfig /* proxy */> proxyMap = new HashMap<>();
+  // 根据CIDR存储Bootstrap实例的并发映射
   private final ConcurrentHashMap<String /* cidr */, Bootstrap> bootstrapMap = new ConcurrentHashMap<>();
+  // 根据地址存储通道包装器的并发映射
   private final ConcurrentMap<String /* addr */, ChannelWrapper> channelTables = new ConcurrentHashMap<>();
+  // 根据通道存储通道包装器的并发映射
   private final ConcurrentMap<Channel, ChannelWrapper> channelWrapperTables = new ConcurrentHashMap<>();
 
+  // 定时器，用于调度周期性任务
   private final HashedWheelTimer timer = new HashedWheelTimer(r -> new Thread(r, "ClientHouseKeepingService"));
 
+  // 存储名称服务器地址列表的原子引用
   private final AtomicReference<List<String>> namesrvAddrList = new AtomicReference<>();
+  // 存储名称服务器地址可用性状态的并发映射
   private final ConcurrentMap<String, Boolean> availableNamesrvAddrMap = new ConcurrentHashMap<>();
+  // 存储选择的名称服务器地址的原子引用
   private final AtomicReference<String> namesrvAddrChoosed = new AtomicReference<>();
+  // 存储名称服务器索引的原子整数
   private final AtomicInteger namesrvIndex = new AtomicInteger(initValueIndex());
+  // 同步访问名称服务器通道的锁
   private final Lock namesrvChannelLock = new ReentrantLock();
 
+  // 处理公共任务的执行器服务
   private final ExecutorService publicExecutor;
+  // 处理扫描任务的执行器服务
   private final ExecutorService scanExecutor;
 
   /**
