@@ -146,20 +146,34 @@ public class AsyncTraceDispatcher implements TraceDispatcher {
     public void setNamespaceV2(String namespaceV2) {
         this.namespaceV2 = namespaceV2;
     }
-
+    /**
+     * 启动异步消息轨迹分发器
+     * 
+     * @param nameSrvAddr NameServer地址
+     * @param accessChannel 访问通道类型
+     * @throws MQClientException 启动过程中可能抛出的MQ客户端异常
+     */
     public void start(String nameSrvAddr, AccessChannel accessChannel) throws MQClientException {
+        // 确保只初始化一次
         if (isStarted.compareAndSet(false, true)) {
+            // 配置并启动轨迹消息生产者
             traceProducer.setNamesrvAddr(nameSrvAddr);
             traceProducer.setInstanceName(TRACE_INSTANCE_NAME + "_" + nameSrvAddr);
             traceProducer.setNamespaceV2(namespaceV2);
             traceProducer.setEnableTrace(false);
             traceProducer.start();
         }
+        
+        // 设置访问通道
         this.accessChannel = accessChannel;
+        
+        // 创建并启动工作线程
         this.worker = new ThreadFactoryImpl("MQ-AsyncArrayDispatcher-Thread" + traceInstanceId, true)
             .newThread(new AsyncRunnable());
         this.worker.setDaemon(true);
         this.worker.start();
+        
+        // 注册JVM关闭钩子
         this.registerShutDownHook();
     }
 

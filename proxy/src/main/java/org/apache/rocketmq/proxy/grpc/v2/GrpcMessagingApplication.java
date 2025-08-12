@@ -233,10 +233,18 @@ public class GrpcMessagingApplication extends MessagingServiceGrpc.MessagingServ
     }
 
     @Override
+    /**
+     * 处理发送消息的请求
+     * @param request 发送消息请求对象,包含要发送的消息内容
+     * @param responseObserver 用于向客户端返回响应的观察者对象
+     */
     public void sendMessage(SendMessageRequest request, StreamObserver<SendMessageResponse> responseObserver) {
+        // 创建响应状态转换器,用于构建包含状态的响应对象
         Function<Status, SendMessageResponse> statusResponseCreator = status -> SendMessageResponse.newBuilder().setStatus(status).build();
+        // 创建代理上下文
         ProxyContext context = createContext();
         try {
+            // 将发送消息任务提交到生产者线程池执行
             this.addExecutor(this.producerThreadPoolExecutor,
                 context,
                 request,
@@ -245,6 +253,7 @@ public class GrpcMessagingApplication extends MessagingServiceGrpc.MessagingServ
                 responseObserver,
                 statusResponseCreator);
         } catch (Throwable t) {
+            // 发生异常时写入错误响应
             writeResponse(context, request, null, responseObserver, t, statusResponseCreator);
         }
     }

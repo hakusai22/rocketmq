@@ -126,24 +126,39 @@ public class HookUtils {
         return null;
     }
 
+    /**
+     * 处理定时/延时消息
+     * @param brokerController broker控制器
+     * @param msg 待处理的消息
+     * @return 消息处理结果,如果返回null表示处理成功
+     */
     public static PutMessageResult handleScheduleMessage(BrokerController brokerController,
         final MessageExtBrokerInner msg) {
+        // 获取消息的事务标记
         final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
+        
+        // 只处理非事务消息或已提交的事务消息
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
             || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
+            
+            // 检查是否为已经转化过的定时消息
             if (!isRolledTimerMessage(msg)) {
+                // 检查是否为定时消息
                 if (checkIfTimerMessage(msg)) {
+                    // 如果时间轮未启用,拒绝接收定时消息
                     if (!brokerController.getMessageStoreConfig().isTimerWheelEnable()) {
-                        //wheel timer is not enabled, reject the message
                         return new PutMessageResult(PutMessageStatus.WHEEL_TIMER_NOT_ENABLE, null);
                     }
+                    
+                    // 转换定时消息格式
                     PutMessageResult transformRes = transformTimerMessage(brokerController, msg);
                     if (null != transformRes) {
                         return transformRes;
                     }
                 }
             }
-            // Delay Delivery
+            
+            // 处理延时消息
             if (msg.getDelayTimeLevel() > 0) {
                 transformDelayLevelMessage(brokerController, msg);
             }

@@ -73,6 +73,50 @@ import org.apache.rocketmq.store.queue.ReferredIterator;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 import org.apache.rocketmq.store.util.PerfCounter;
 
+/**
+ * TimerMessageStore 是 RocketMQ 中实现定时消息的核心类，主要功能和实现逻辑如下：
+
+1. 1.
+   核心组件：
+- TimerWheel: 时间轮，用于管理定时消息的调度
+- TimerLog: 持久化存储定时消息的日志
+- TimerCheckpoint: 记录定时消息处理的检查点信息
+- 多个服务线程：包括入队、出队、预热等服务
+2. 1.
+   主要流程：
+- 入队(enqueue)：
+  
+  - 从 CommitLog 读取消息
+  - 根据延迟时间放入时间轮对应的槽位
+  - 写入 TimerLog 持久化
+- 出队(dequeue)：
+  
+  - 扫描当前时间槽位中的消息
+  - 分为普通消息和删除消息两种处理
+  - 到期的消息会被投递到实际的目标主题
+3. 1.
+   关键特性：
+- 支持毫秒级精度的定时调度
+- 使用时间轮算法提高调度效率
+- 支持消息的滚动(roll)处理
+- 具备预热机制提高性能
+- 实现了主从切换的状态管理
+4. 1.
+   可靠性保证：
+- 通过 TimerLog 实现消息持久化
+- 使用 Checkpoint 机制保证处理进度
+- 支持故障恢复和数据一致性
+- 提供度量指标监控
+5. 1.
+   性能优化：
+- 使用 DisruptorBlockingQueue 提升并发性能
+- 实现了预读和批量处理机制
+- 支持可配置的精度和容量参数
+这个实现保证了 RocketMQ 定时消息的高可靠性和高性能，同时提供了灵活的配置选项。
+ * 
+ * 
+ */
+
 public class TimerMessageStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);

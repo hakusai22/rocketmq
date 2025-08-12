@@ -226,9 +226,13 @@ public class DefaultLitePullConsumer extends ClientConfig implements LitePullCon
 
     @Override
     public void start() throws MQClientException {
+        // 初始化消息轨迹分发器
         setTraceDispatcher();
+        // 使用命名空间包装消费者组名
         setConsumerGroup(NamespaceUtil.wrapNamespace(this.getNamespace(), this.consumerGroup));
+        // 启动轻量级拉取消费者实现类
         this.defaultLitePullConsumerImpl.start();
+        // 如果配置了消息轨迹分发器,则启动轨迹分发
         if (null != traceDispatcher) {
             try {
                 traceDispatcher.start(this.getNamesrvAddr(), this.getAccessChannel());

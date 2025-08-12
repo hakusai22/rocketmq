@@ -63,6 +63,16 @@ public class ProducerProcessor extends AbstractProcessor {
         this.topicMessageTypeValidator = new DefaultTopicMessageTypeValidator();
     }
 
+    /**
+     * 发送消息的方法
+     * @param ctx 代理上下文
+     * @param queueSelector 队列选择器
+     * @param producerGroup 生产者组名
+     * @param sysFlag 系统标记
+     * @param messageList 待发送的消息列表
+     * @param timeoutMillis 超时时间(毫秒)
+     * @return 发送结果的Future
+     */
     public CompletableFuture<List<SendResult>> sendMessage(ProxyContext ctx, QueueSelector queueSelector,
         String producerGroup, int sysFlag, List<Message> messageList, long timeoutMillis) {
         CompletableFuture<List<SendResult>> future = new CompletableFuture<>();
@@ -71,6 +81,7 @@ public class ProducerProcessor extends AbstractProcessor {
         try {
             Message message = messageList.get(0);
             String topic = message.getTopic();
+            // 检查消息类型是否匹配Topic配置
             if (ConfigurationManager.getProxyConfig().isEnableTopicMessageTypeCheck()) {
                 if (topicMessageTypeValidator != null) {
                     // Do not check retry or dlq topic
@@ -81,18 +92,24 @@ public class ProducerProcessor extends AbstractProcessor {
                     }
                 }
             }
+            
+            // 选择消息队列
             messageQueue = queueSelector.select(ctx,
                 this.serviceManager.getTopicRouteService().getCurrentMessageQueueView(ctx, topic));
             if (messageQueue == null) {
                 throw new ProxyException(ProxyExceptionCode.FORBIDDEN, "no writable queue");
             }
 
+            // 为每条消息设置唯一ID
             for (Message msg : messageList) {
                 MessageClientIDSetter.setUniqID(msg);
             }
+            
+            // 构建发送消息请求头
             SendMessageRequestHeader requestHeader = buildSendMessageRequestHeader(messageList, producerGroup, sysFlag, messageQueue.getQueueId());
 
             AddressableMessageQueue finalMessageQueue = messageQueue;
+            // 执行消息发送
             future = this.serviceManager.getMessageService().sendMessage(
                 ctx,
                 messageQueue,
@@ -100,6 +117,7 @@ public class ProducerProcessor extends AbstractProcessor {
                 requestHeader,
                 timeoutMillis)
                 .thenApplyAsync(sendResultList -> {
+                    // 处理事务消息
                     for (SendResult sendResult : sendResultList) {
                         int tranType = MessageSysFlag.getTransactionValue(requestHeader.getSysFlag());
                         if (SendStatus.SEND_OK.equals(sendResult.getSendStatus()) &&
@@ -111,6 +129,7 @@ public class ProducerProcessor extends AbstractProcessor {
                     return sendResultList;
                 }, this.executor)
                     .whenComplete((result, exception) -> {
+                        // 更新Broker故障信息
                         long endTimestamp = System.currentTimeMillis();
                         if (exception != null) {
                             this.serviceManager.getTopicRouteService().updateFaultItem(finalMessageQueue.getBrokerName(), endTimestamp - beginTimestampFirst, true, false);

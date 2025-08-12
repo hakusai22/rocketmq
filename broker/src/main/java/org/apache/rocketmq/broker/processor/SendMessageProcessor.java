@@ -262,24 +262,24 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
     return true;
   }
 
-  /**
-   * 处理消息发送请求。
-   *
-   * @param ctx                 当前的 Netty 通道上下文
-   * @param request             客户端发送的请求命令
-   * @param sendMessageContext  消息发送上下文，包含消息发送的相关信息
-   * @param requestHeader       消息发送请求头，包含消息的元数据
-   * @param mappingContext      主题队列映射上下文，用于处理静态主题的映射
-   * @param sendMessageCallback 消息发送完成后的回调函数
-   * @return 响应命令，包含消息发送的结果
-   * @throws RemotingCommandException 如果处理请求时发生异常
-   */
-  public RemotingCommand sendMessage(final ChannelHandlerContext ctx,
-      final RemotingCommand request,
-      final SendMessageContext sendMessageContext,
-      final SendMessageRequestHeader requestHeader,
-      final TopicQueueMappingContext mappingContext,
-      final SendMessageCallback sendMessageCallback) throws RemotingCommandException {
+/**
+ * 处理消息发送请求的核心方法
+ * 
+ * @param ctx Netty通道上下文,用于网络通信
+ * @param request 客户端发送的请求命令
+ * @param sendMessageContext 消息发送上下文,包含发送过程的相关信息
+ * @param requestHeader 消息发送请求头,包含消息的元数据信息
+ * @param mappingContext 主题队列映射上下文,用于处理静态主题的映射关系
+ * @param sendMessageCallback 消息发送完成后的回调函数
+ * @return 响应命令,包含消息发送的处理结果
+ * @throws RemotingCommandException 当处理请求过程中发生异常时抛出
+ */
+public RemotingCommand sendMessage(final ChannelHandlerContext ctx,
+    final RemotingCommand request,
+    final SendMessageContext sendMessageContext,
+    final SendMessageRequestHeader requestHeader,
+    final TopicQueueMappingContext mappingContext,
+    final SendMessageCallback sendMessageCallback) throws RemotingCommandException {
 
     // 预处理消息发送请求
     final RemotingCommand response = preSend(ctx, request, requestHeader);
